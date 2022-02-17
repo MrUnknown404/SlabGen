@@ -7,6 +7,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.SnowBlock;
+import net.minecraft.block.SnowyDirtBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.state.properties.SlabType;
@@ -20,9 +21,9 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.ToolType;
 
-public class SlabDirt extends SlabBlock {
-	public SlabDirt() {
-		super(Properties.of(Material.DIRT).sound(SoundType.GRAVEL).harvestTool(ToolType.SHOVEL).strength(0.5f, 0.5f).randomTicks());
+public class SlabMycelium extends SlabBlock {
+	public SlabMycelium() {
+		super(Properties.of(Material.GRASS).sound(SoundType.GRASS).harvestTool(ToolType.SHOVEL).strength(0.6f, 0.6f).randomTicks());
 	}
 	
 	private static boolean canBeGrass(BlockState state, IWorldReader world, BlockPos pos) {
@@ -69,10 +70,13 @@ public class SlabDirt extends SlabBlock {
 			if (world.getMaxLocalRawBrightness(pos.above()) >= 9) {
 				for (int i = 0; i < 4; i++) {
 					BlockPos blockpos = pos.offset(r.nextInt(3) - 1, r.nextInt(5) - 3, r.nextInt(3) - 1);
-					if (world.getBlockState(blockpos).is(Blocks.GRASS_BLOCK) && canPropagate(defaultBlockState(), world, pos)) {
-						world.setBlockAndUpdate(pos, SGRegistry.GRASS_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
-					} else if (world.getBlockState(blockpos).is(Blocks.MYCELIUM) && canPropagate(defaultBlockState(), world, pos)) {
-						world.setBlockAndUpdate(pos, SGRegistry.MYCELIUM_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
+					BlockState state1 = world.getBlockState(blockpos);
+					
+					if (state1.is(Blocks.DIRT) && canPropagate(state1, world, blockpos)) {
+						world.setBlockAndUpdate(blockpos,
+								Blocks.MYCELIUM.defaultBlockState().setValue(SnowyDirtBlock.SNOWY, Boolean.valueOf(world.getBlockState(blockpos.above()).is(Blocks.SNOW))));
+					} else if (state1.is(SGRegistry.DIRT_SLAB.get()) && canPropagate(state1, world, blockpos)) {
+						world.setBlockAndUpdate(blockpos, defaultBlockState().setValue(SlabBlock.TYPE, state1.getValue(SlabBlock.TYPE)));
 					}
 				}
 			}

@@ -25,6 +25,6 @@ public class SlabGen {
 	
 	@SubscribeEvent
 	public void biomeLoad(BiomeLoadingEvent e) {
-		e.getGeneration().addFeature(Decoration.RAW_GENERATION.ordinal(), () -> SGFeatures.GROUND_SLABS);
+		e.getGeneration().addFeature(Decoration.TOP_LAYER_MODIFICATION.ordinal(), () -> SGFeatures.GROUND_SLABS);
 	}
 }
