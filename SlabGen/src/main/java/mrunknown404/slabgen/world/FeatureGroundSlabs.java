@@ -97,7 +97,7 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 	}
 	
 	private static void add(Block originBlock, Block replaceBlock, Block slabBlock) {
-		SPAWN_MAP.put(originBlock, new SlabSpawnInfo(slabBlock, replaceBlock));
+		SPAWN_MAP.put(originBlock, new SlabSpawnInfo(replaceBlock, slabBlock));
 	}
 	
 	private static boolean isSide(Block b) {
