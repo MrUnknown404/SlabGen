@@ -1,9 +1,11 @@
 package mrunknown404.slabgen;
 
+import mrunknown404.slabgen.registries.SGBlocks;
+import mrunknown404.slabgen.registries.SGFeatures;
+import mrunknown404.slabgen.registries.SGItems;
 import mrunknown404.slabgen.utils.ClientProxy;
-import mrunknown404.slabgen.utils.SGRegistry;
-import mrunknown404.slabgen.world.SGFeatures;
-import net.minecraft.world.gen.GenerationStage.Decoration;
+import mrunknown404.slabgen.world.SGConfiguredFeatures;
+import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -20,11 +22,13 @@ public class SlabGen {
 		bus.addListener(ClientProxy::clientSetup);
 		
 		MinecraftForge.EVENT_BUS.register(this);
-		SGRegistry.register(bus);
+		SGBlocks.BLOCKS.register(bus);
+		SGItems.ITEMS.register(bus);
+		SGFeatures.FEATURES.register(bus);
 	}
 	
 	@SubscribeEvent
 	public void biomeLoad(BiomeLoadingEvent e) {
-		e.getGeneration().addFeature(Decoration.TOP_LAYER_MODIFICATION.ordinal(), () -> SGFeatures.GROUND_SLABS);
+		e.getGeneration().addFeature(Decoration.TOP_LAYER_MODIFICATION.ordinal(), SGConfiguredFeatures.GROUND_SLABS_PLACEMENT);
 	}
 }

@@ -1,0 +1,11 @@
+{
+	"replace": false,
+	"values": [
+		"slabgen:dirt_slab",
+		"slabgen:grass_slab",
+		"slabgen:mycelium_slab",
+		"slabgen:coarse_dirt_slab",
+		"slabgen:sand_slab",
+		"slabgen:gravel_slab"
+	]
+}

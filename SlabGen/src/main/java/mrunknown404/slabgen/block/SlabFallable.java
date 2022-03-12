@@ -2,50 +2,49 @@ package mrunknown404.slabgen.block;
 
 import java.util.Random;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FallingBlock;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.item.FallingBlockEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.SlabType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.common.ToolType;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FallingBlock;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class SlabFallable extends FallingBlock implements IWaterLoggable {
+public class SlabFallable extends FallingBlock implements SimpleWaterloggedBlock {
 	private static final VoxelShape BOTTOM_AABB = Block.box(0, 0, 0, 16, 8, 16), TOP_AABB = Block.box(0, 8, 0, 16, 16, 16);
 	
-	public SlabFallable(SoundType soundType, float hardness, float blast) {
-		super(Properties.of(Material.SAND).sound(soundType).harvestTool(ToolType.SHOVEL).strength(hardness, blast).randomTicks());
+	private final int dustColor;
+	
+	public SlabFallable(SoundType soundType, float hardness, float blast, int dustColor) {
+		super(Properties.of(Material.SAND).sound(soundType).strength(hardness, blast).randomTicks());
+		this.dustColor = dustColor;
 		registerDefaultState(defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED, Boolean.valueOf(false)));
 	}
 	
 	@Override
-	public void tick(BlockState state, ServerWorld world, BlockPos pos, Random r) {
-		boolean isTop = state.getValue(SlabBlock.TYPE) == SlabType.TOP;
-		
-		if (isTop || (world.isEmptyBlock(pos.below()) || isFree(world.getBlockState(pos.below())) && pos.getY() >= 0)) {
-			FallingBlockEntity fallingblockentity = new FallingBlockEntity(world, pos.getX() + 0.5, pos.getY() + (isTop ? 0.5 : 0), pos.getZ() + 0.5,
-					isTop ? state.setValue(SlabBlock.TYPE, SlabType.BOTTOM) : state);
+	public void tick(BlockState state, ServerLevel world, BlockPos pos, Random r) {
+		if (world.isEmptyBlock(pos.below()) || isFree(world.getBlockState(pos.below())) && pos.getY() >= world.getMinBuildHeight()) {
+			world.setBlock(pos, Blocks.AIR.defaultBlockState(), UPDATE_ALL);
+			FallingBlockEntity fallingblockentity = FallingBlockEntity.fall(world, pos.offset(0.5, 0, 0.5), state);
 			falling(fallingblockentity);
-			world.addFreshEntity(fallingblockentity);
 		} else if (state.getValue(SlabBlock.TYPE) == SlabType.BOTTOM) {
 			BlockState st = world.getBlockState(pos.below());
 			
@@ -54,9 +53,8 @@ public class SlabFallable extends FallingBlock implements IWaterLoggable {
 					world.setBlockAndUpdate(pos.below(), state.setValue(SlabBlock.TYPE, SlabType.DOUBLE));
 					world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 				} else {
-					FallingBlockEntity fallingblockentity = new FallingBlockEntity(world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, state);
+					FallingBlockEntity fallingblockentity = FallingBlockEntity.fall(world, pos.offset(0.5, 0, 0.5), state);
 					falling(fallingblockentity);
-					world.addFreshEntity(fallingblockentity);
 				}
 			}
 		}
@@ -68,16 +66,16 @@ public class SlabFallable extends FallingBlock implements IWaterLoggable {
 	}
 	
 	@Override
-	protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(SlabBlock.TYPE, SlabBlock.WATERLOGGED);
 	}
 	
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader reader, BlockPos pos, ISelectionContext ctx) {
+	public VoxelShape getShape(BlockState state, BlockGetter reader, BlockPos pos, CollisionContext ctx) {
 		SlabType slabtype = state.getValue(SlabBlock.TYPE);
 		switch (slabtype) {
 			case DOUBLE:
-				return VoxelShapes.block();
+				return Shapes.block();
 			case TOP:
 				return TOP_AABB;
 			default:
@@ -86,22 +84,19 @@ public class SlabFallable extends FallingBlock implements IWaterLoggable {
 	}
 	
 	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext ctx) {
+	public BlockState getStateForPlacement(BlockPlaceContext ctx) {
 		BlockPos blockpos = ctx.getClickedPos();
 		BlockState blockstate = ctx.getLevel().getBlockState(blockpos);
 		if (blockstate.is(this)) {
 			return blockstate.setValue(SlabBlock.TYPE, SlabType.DOUBLE).setValue(SlabBlock.WATERLOGGED, Boolean.valueOf(false));
 		}
 		
-		BlockState blockstate1 = defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED,
+		return defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED,
 				Boolean.valueOf(ctx.getLevel().getFluidState(blockpos).getType() == Fluids.WATER));
-		Direction direction = ctx.getClickedFace();
-		return direction != Direction.DOWN && (direction == Direction.UP || !(ctx.getClickLocation().y - blockpos.getY() > 0.5)) ? blockstate1 :
-				blockstate1.setValue(SlabBlock.TYPE, SlabType.TOP);
 	}
 	
 	@Override
-	public boolean canBeReplaced(BlockState state, BlockItemUseContext ctx) {
+	public boolean canBeReplaced(BlockState state, BlockPlaceContext ctx) {
 		SlabType slabtype = state.getValue(SlabBlock.TYPE);
 		if (slabtype != SlabType.DOUBLE && ctx.getItemInHand().getItem() == this.asItem()) {
 			if (ctx.replacingClickedOnBlock()) {
@@ -128,31 +123,31 @@ public class SlabFallable extends FallingBlock implements IWaterLoggable {
 	}
 	
 	@Override
-	public boolean placeLiquid(IWorld world, BlockPos pos, BlockState state, FluidState fluid) {
-		return state.getValue(SlabBlock.TYPE) != SlabType.DOUBLE ? IWaterLoggable.super.placeLiquid(world, pos, state, fluid) : false;
+	public boolean placeLiquid(LevelAccessor world, BlockPos pos, BlockState state, FluidState fluid) {
+		return state.getValue(SlabBlock.TYPE) != SlabType.DOUBLE ? SimpleWaterloggedBlock.super.placeLiquid(world, pos, state, fluid) : false;
 	}
 	
 	@Override
-	public boolean canPlaceLiquid(IBlockReader reader, BlockPos pos, BlockState state, Fluid fluid) {
-		return state.getValue(SlabBlock.TYPE) != SlabType.DOUBLE ? IWaterLoggable.super.canPlaceLiquid(reader, pos, state, fluid) : false;
+	public boolean canPlaceLiquid(BlockGetter reader, BlockPos pos, BlockState state, Fluid fluid) {
+		return state.getValue(SlabBlock.TYPE) != SlabType.DOUBLE ? SimpleWaterloggedBlock.super.canPlaceLiquid(reader, pos, state, fluid) : false;
 	}
 	
 	@Override
-	public BlockState updateShape(BlockState state0, Direction dir, BlockState state1, IWorld world, BlockPos pos0, BlockPos pos1) {
+	public BlockState updateShape(BlockState state0, Direction dir, BlockState state1, LevelAccessor world, BlockPos pos0, BlockPos pos1) {
 		if (state0.getValue(SlabBlock.WATERLOGGED)) {
-			world.getLiquidTicks().scheduleTick(pos0, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+			world.scheduleTick(pos0, Fluids.WATER, Fluids.WATER.getTickDelay(world));
 		}
 		
 		return super.updateShape(state0, dir, state1, world, pos0, pos1);
 	}
 	
 	@Override
-	public boolean isPathfindable(BlockState state, IBlockReader reader, BlockPos pos, PathType type) {
-		return type == PathType.WATER ? reader.getFluidState(pos).is(FluidTags.WATER) : false;
+	public boolean isPathfindable(BlockState state, BlockGetter reader, BlockPos pos, PathComputationType type) {
+		return type == PathComputationType.WATER ? reader.getFluidState(pos).is(FluidTags.WATER) : false;
 	}
 	
 	@Override
-	public int getDustColor(BlockState state, IBlockReader reader, BlockPos pos) {
-		return -8356741;
+	public int getDustColor(BlockState state, BlockGetter reader, BlockPos pos) {
+		return dustColor;
 	}
 }

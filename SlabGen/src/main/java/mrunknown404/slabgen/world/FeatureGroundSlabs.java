@@ -4,64 +4,69 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import mrunknown404.slabgen.utils.SGRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SlabBlock;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.IWorldWriter;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
+import mrunknown404.slabgen.registries.SGBlocks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.LevelWriter;
+import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
-public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
+public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 	private static final Map<Block, SlabSpawnInfo> SPAWN_MAP = new HashMap<Block, SlabSpawnInfo>();
-	private static final Set<Block> SIDE_BLOCKS = new HashSet<Block>(Arrays.asList(Blocks.STONE, Blocks.ANDESITE, Blocks.GRANITE, Blocks.DIORITE, Blocks.GRASS_BLOCK,
-			Blocks.MYCELIUM, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.SAND, Blocks.SANDSTONE, Blocks.GRAVEL));
+	private static final Set<Block> SIDE_BLOCKS = new HashSet<Block>(Arrays.asList(Blocks.STONE, Blocks.ANDESITE, Blocks.GRANITE, Blocks.DIORITE,
+			Blocks.GRASS_BLOCK, Blocks.MYCELIUM, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.SAND, Blocks.SANDSTONE, Blocks.GRAVEL));
 	
 	static {
-		add(Blocks.GRASS_BLOCK, Blocks.DIRT, SGRegistry.GRASS_SLAB.get());
-		add(Blocks.MYCELIUM, Blocks.DIRT, SGRegistry.MYCELIUM_SLAB.get());
-		add(Blocks.COARSE_DIRT, null, SGRegistry.COARSE_DIRT_SLAB.get());
-		add(Blocks.DIRT, null, SGRegistry.DIRT_SLAB.get());
+		add(Blocks.GRASS_BLOCK, Blocks.DIRT, SGBlocks.GRASS_SLAB.get());
+		add(Blocks.MYCELIUM, Blocks.DIRT, SGBlocks.MYCELIUM_SLAB.get());
+		add(Blocks.COARSE_DIRT, null, SGBlocks.COARSE_DIRT_SLAB.get());
+		add(Blocks.DIRT, null, SGBlocks.DIRT_SLAB.get());
 		add(Blocks.STONE, null, Blocks.STONE_SLAB);
 		add(Blocks.ANDESITE, null, Blocks.ANDESITE_SLAB);
 		add(Blocks.DIORITE, null, Blocks.DIORITE_SLAB);
 		add(Blocks.GRANITE, null, Blocks.GRANITE_SLAB);
-		add(Blocks.SAND, null, SGRegistry.SAND_SLAB.get());
-		add(Blocks.GRAVEL, null, SGRegistry.GRAVEL_SLAB.get());
+		add(Blocks.SAND, null, SGBlocks.SAND_SLAB.get());
+		add(Blocks.GRAVEL, null, SGBlocks.GRAVEL_SLAB.get());
 	}
 	
 	public FeatureGroundSlabs() {
-		super(NoFeatureConfig.CODEC);
+		super(NoneFeatureConfiguration.CODEC);
 	}
 	
 	@Override
-	protected void setBlock(IWorldWriter world, BlockPos pos, BlockState state) {
+	protected void setBlock(LevelWriter world, BlockPos pos, BlockState state) {
 		world.setBlock(pos, state, 19);
 	}
 	
 	@Override
-	public boolean place(ISeedReader seed, ChunkGenerator gen, Random r, BlockPos pos, NoFeatureConfig config) {
+	public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> ctx) {
+		ChunkGenerator gen = ctx.chunkGenerator();
+		BlockPos pos = ctx.origin();
+		WorldGenLevel level = ctx.level();
+		
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
-				int yy = seed.getHeightmapPos(Heightmap.Type.WORLD_SURFACE, new BlockPos(pos.getX() + x, 0, pos.getZ() + z)).getY();
+				int yy = level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE, new BlockPos(pos.getX() + x, 0, pos.getZ() + z)).getY();
 				
 				for (int y = gen.getSeaLevel() - 1; y < yy; y++) {
 					BlockPos originPos = new BlockPos(pos.getX() + x, y, pos.getZ() + z), abovePos = originPos.above();
-					SlabSpawnInfo info = SPAWN_MAP.getOrDefault(seed.getBlockState(originPos).getBlock(), null);
-					BlockState aboveState = seed.getBlockState(abovePos);
+					SlabSpawnInfo info = SPAWN_MAP.getOrDefault(level.getBlockState(originPos).getBlock(), null);
+					BlockState aboveState = level.getBlockState(abovePos);
 					
-					if (info != null && aboveState.getBlock() != Blocks.CAVE_AIR && !aboveState.getMaterial().isLiquid() && aboveState.getMaterial().isReplaceable()) {
+					if (info != null && aboveState.getBlock() != Blocks.CAVE_AIR && !aboveState.getMaterial().isLiquid() &&
+							aboveState.getMaterial().isReplaceable()) {
 						float count = 0;
 						
 						for (Direction dir : Direction.values()) {
@@ -69,14 +74,14 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 								continue;
 							}
 							
-							Block relAboveBlock = seed.getBlockState(abovePos.relative(dir)).getBlock();
+							Block relAboveBlock = level.getBlockState(abovePos.relative(dir)).getBlock();
 							if (isSide(relAboveBlock)) {
 								count++;
 							} else if (relAboveBlock instanceof SlabBlock) {
 								count += 0.5f;
 							}
 							
-							BlockState relOriginBlock = seed.getBlockState(originPos.relative(dir));
+							BlockState relOriginBlock = level.getBlockState(originPos.relative(dir));
 							if (relOriginBlock.getMaterial().isReplaceable() || relOriginBlock.getBlock() instanceof SlabBlock) {
 								count -= 0.5f;
 							}
@@ -84,9 +89,9 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 						
 						if (count > 1) {
 							if (info.shouldReplace()) {
-								setBlock(seed, originPos, info.replaceBlock.defaultBlockState());
+								setBlock(level, originPos, info.replaceBlock.defaultBlockState());
 							}
-							setBlock(seed, abovePos, info.slabBlock.defaultBlockState());
+							setBlock(level, abovePos, info.slabBlock.defaultBlockState());
 						}
 					}
 				}
