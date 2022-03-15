@@ -13,7 +13,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -28,7 +27,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 public class SGRegistry {
 	private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, SlabGen.MOD_ID);
 	private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SlabGen.MOD_ID);
-	private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, SlabGen.MOD_ID);
 	private static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(ForgeRegistries.FEATURES, SlabGen.MOD_ID);
 	
 	public static final RegistryObject<Feature<NoFeatureConfig>> GROUND_SLABS = feature("ground_slabs", () -> new FeatureGroundSlabs());
@@ -58,7 +56,6 @@ public class SGRegistry {
 	public static void register(IEventBus bus) {
 		BLOCKS.register(bus);
 		ITEMS.register(bus);
-		ENTITIES.register(bus);
 		FEATURES.register(bus);
 	}
 }
