@@ -4,6 +4,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.GrassColors;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
@@ -13,7 +14,9 @@ public class ClientProxy {
 		
 		Minecraft mc = Minecraft.getInstance();
 		mc.getBlockColors().register((state, reader, pos, tintIndex) -> {
-			return mc.getBlockColors().getColor(Blocks.GRASS_BLOCK.defaultBlockState(), reader, pos, tintIndex);
+			// This is weird. Vanilla doesn't do this but this messes with particles otherwise??
+			// I'm probably just missing something
+			return reader instanceof ClientWorld ? -1 : mc.getBlockColors().getColor(Blocks.GRASS_BLOCK.defaultBlockState(), reader, pos, tintIndex);
 		}, SGRegistry.GRASS_SLAB.get());
 		
 		mc.getItemColors().register((itemstack, tintIndex) -> {
