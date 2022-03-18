@@ -1,6 +1,5 @@
 package mrunknown404.slabgen.world;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,10 +24,10 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 
 public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 	private static final Map<Block, SlabSpawnInfo> SPAWN_MAP = new HashMap<Block, SlabSpawnInfo>();
-	private static final Set<Block> SIDE_BLOCKS = new HashSet<Block>(Arrays.asList(Blocks.STONE, Blocks.ANDESITE, Blocks.GRANITE, Blocks.DIORITE,
-			Blocks.GRASS_BLOCK, Blocks.MYCELIUM, Blocks.DIRT, Blocks.COARSE_DIRT, Blocks.SAND, Blocks.SANDSTONE, Blocks.GRAVEL));
+	private static final Set<Block> SIDE_BLOCKS = new HashSet<Block>();
 	
 	static {
+		SIDE_BLOCKS.add(Blocks.SANDSTONE);
 		add(Blocks.GRASS_BLOCK, Blocks.DIRT, SGBlocks.GRASS_SLAB.get());
 		add(Blocks.MYCELIUM, Blocks.DIRT, SGBlocks.MYCELIUM_SLAB.get());
 		add(Blocks.COARSE_DIRT, null, SGBlocks.COARSE_DIRT_SLAB.get());
@@ -39,6 +38,7 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 		add(Blocks.GRANITE, null, Blocks.GRANITE_SLAB);
 		add(Blocks.SAND, null, SGBlocks.SAND_SLAB.get());
 		add(Blocks.GRAVEL, null, SGBlocks.GRAVEL_SLAB.get());
+		add(Blocks.PODZOL, null, SGBlocks.PODZOL_SLAB.get());
 	}
 	
 	public FeatureGroundSlabs() {
@@ -65,8 +65,7 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 					SlabSpawnInfo info = SPAWN_MAP.getOrDefault(level.getBlockState(originPos).getBlock(), null);
 					BlockState aboveState = level.getBlockState(abovePos);
 					
-					if (info != null && aboveState.getBlock() != Blocks.CAVE_AIR && !aboveState.getMaterial().isLiquid() &&
-							aboveState.getMaterial().isReplaceable()) {
+					if (info != null && aboveState.getBlock() != Blocks.CAVE_AIR && !aboveState.getMaterial().isLiquid() && aboveState.getMaterial().isReplaceable()) {
 						float count = 0;
 						
 						for (Direction dir : Direction.values()) {
@@ -103,6 +102,7 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 	
 	private static void add(Block originBlock, Block replaceBlock, Block slabBlock) {
 		SPAWN_MAP.put(originBlock, new SlabSpawnInfo(replaceBlock, slabBlock));
+		SIDE_BLOCKS.add(originBlock);
 	}
 	
 	private static boolean isSide(Block b) {

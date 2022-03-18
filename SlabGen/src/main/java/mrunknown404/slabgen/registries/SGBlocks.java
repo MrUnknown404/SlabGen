@@ -27,6 +27,8 @@ public class SGBlocks {
 	public static final RegistryObject<SlabBlock> MYCELIUM_SLAB = block("mycelium_slab", () -> new SlabMycelium());
 	public static final RegistryObject<SlabBlock> COARSE_DIRT_SLAB = block("coarse_dirt_slab",
 			() -> new SlabBlock(Properties.of(Material.DIRT).sound(SoundType.GRAVEL).strength(0.5f, 0.5f)));
+	public static final RegistryObject<SlabBlock> PODZOL_SLAB = block("podzol_slab",
+			() -> new SlabBlock(Properties.of(Material.DIRT).sound(SoundType.GRAVEL).strength(0.5f, 0.5f)));
 	public static final RegistryObject<Block> SAND_SLAB = block("sand_slab", () -> new SlabFallable(SoundType.SAND, 0.5f, 0.5f, 14406560));
 	public static final RegistryObject<Block> GRAVEL_SLAB = block("gravel_slab", () -> new SlabFallable(SoundType.GRAVEL, 0.6f, 0.6f, -8356741));
 	
