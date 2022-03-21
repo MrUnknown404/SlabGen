@@ -6,14 +6,14 @@
 			"entries": [
 				{
 					"type": "minecraft:item",
-					"name": "slabgen:coarse_dirt_slab",
+					"name": "slabgen:red_sand_slab",
 					"functions": [
 						{
 							"function": "minecraft:set_count",
 							"conditions": [
 								{
 									"condition": "minecraft:block_state_property",
-									"block": "slabgen:coarse_dirt_slab",
+									"block": "slabgen:red_sand_slab",
 									"properties": {
 										"type": "double"
 									}

@@ -24,7 +24,25 @@
 									}
 								}
 							],
-							"name": "slabgen:mycelium_slab"
+							"name": "slabgen:mycelium_slab",
+							"functions": [
+								{
+									"function": "minecraft:set_count",
+									"conditions": [
+										{
+											"condition": "minecraft:block_state_property",
+											"block": "slabgen:mycelium_slab",
+											"properties": {
+												"type": "double"
+											}
+										}
+									],
+									"count": 2
+								},
+								{
+									"function": "minecraft:explosion_decay"
+								}
+							]
 						},
 						{
 							"type": "minecraft:item",
@@ -33,7 +51,25 @@
 									"condition": "minecraft:survives_explosion"
 								}
 							],
-							"name": "slabgen:dirt_slab"
+							"name": "slabgen:dirt_slab",
+							"functions": [
+								{
+									"function": "minecraft:set_count",
+									"conditions": [
+										{
+											"condition": "minecraft:block_state_property",
+											"block": "slabgen:mycelium_slab",
+											"properties": {
+												"type": "double"
+											}
+										}
+									],
+									"count": 2
+								},
+								{
+									"function": "minecraft:explosion_decay"
+								}
+							]
 						}
 					]
 				}

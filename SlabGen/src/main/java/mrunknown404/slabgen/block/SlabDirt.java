@@ -9,20 +9,58 @@ import net.minecraft.block.SlabBlock;
 import net.minecraft.block.SnowBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.properties.SlabType;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
+import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.ToolType;
+import net.minecraftforge.event.ForgeEventFactory;
 
 public class SlabDirt extends SlabBlock {
 	public SlabDirt() {
 		super(Properties.of(Material.DIRT).sound(SoundType.GRAVEL).harvestTool(ToolType.SHOVEL).strength(0.5f, 0.5f).randomTicks());
+	}
+	
+	@Override
+	public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult ray) {
+		ItemStack itemstack = player.getItemInHand(hand);
+		
+		if (ray.getDirection() == Direction.DOWN || !itemstack.getToolTypes().contains(ToolType.SHOVEL)) {
+			return ActionResultType.PASS;
+		}
+		
+		BlockState eventState = ForgeEventFactory.onToolUse(state, world, pos, player, itemstack, ToolType.SHOVEL);
+		BlockState finalState = eventState != state ? eventState : SGRegistry.PATH_SLAB.get().defaultBlockState().setValue(TYPE, state.getValue(TYPE));
+		
+		if (finalState != null) {
+			if (state.getValue(TYPE) == SlabType.BOTTOM || (state.getValue(TYPE) == SlabType.DOUBLE || state.getValue(TYPE) == SlabType.TOP) && world.isEmptyBlock(pos.above())) {
+				world.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundCategory.BLOCKS, 1.0F, 1.0F);
+				
+				if (!world.isClientSide) {
+					world.setBlock(pos, finalState, 11);
+					if (player != null) {
+						player.getItemInHand(hand).hurtAndBreak(1, player, (pl) -> {
+							pl.broadcastBreakEvent(hand);
+						});
+					}
+				}
+			}
+		}
+		
+		return ActionResultType.sidedSuccess(world.isClientSide);
 	}
 	
 	private static boolean canBeGrass(BlockState state, IWorldReader world, BlockPos pos) {
@@ -72,7 +110,8 @@ public class SlabDirt extends SlabBlock {
 					if (world.getBlockState(blockpos).is(Blocks.GRASS_BLOCK) && canPropagate(defaultBlockState(), world, pos)) {
 						world.setBlockAndUpdate(pos, SGRegistry.GRASS_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
 					} else if (world.getBlockState(blockpos).is(Blocks.MYCELIUM) && canPropagate(defaultBlockState(), world, pos)) {
-						world.setBlockAndUpdate(pos, SGRegistry.MYCELIUM_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
+						world.setBlockAndUpdate(pos,
+								SGRegistry.MYCELIUM_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
 					}
 				}
 			}

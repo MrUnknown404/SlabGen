@@ -5,14 +5,14 @@ issueTrackerURL="https://github.com/MrUnknown404/SlabGen/issues"
 
 [[mods]]
 modId="slabgen"
-version="1.3.0"
+version="1.4.0"
 displayName="SlabGen"
 displayURL="https://github.com/MrUnknown404/SlabGen"
 #logoFile="examplemod.png"
 credits=""
 authors="-Unknown-"
 description='''
-Adds Dirt/Grass slabs to World Gen
+Adds new slabs into the game that'll generate in the world alongside existing slabs!
 '''
 
 [[dependencies.slabgen]]

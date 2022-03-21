@@ -32,9 +32,12 @@ import net.minecraftforge.common.ToolType;
 public class SlabFallable extends FallingBlock implements IWaterLoggable {
 	private static final VoxelShape BOTTOM_AABB = Block.box(0, 0, 0, 16, 8, 16), TOP_AABB = Block.box(0, 8, 0, 16, 16, 16);
 	
-	public SlabFallable(SoundType soundType, float hardness, float blast) {
+	private final int dustColor;
+	
+	public SlabFallable(SoundType soundType, float hardness, float blast,  int dustColor) {
 		super(Properties.of(Material.SAND).sound(soundType).harvestTool(ToolType.SHOVEL).strength(hardness, blast).randomTicks());
 		registerDefaultState(defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED, Boolean.valueOf(false)));
+		this.dustColor = dustColor;
 	}
 	
 	@Override
@@ -153,6 +156,6 @@ public class SlabFallable extends FallingBlock implements IWaterLoggable {
 	
 	@Override
 	public int getDustColor(BlockState state, IBlockReader reader, BlockPos pos) {
-		return -8356741;
+		return dustColor;
 	}
 }
