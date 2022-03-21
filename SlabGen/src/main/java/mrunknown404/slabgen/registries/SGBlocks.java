@@ -7,6 +7,7 @@ import mrunknown404.slabgen.block.SlabDirt;
 import mrunknown404.slabgen.block.SlabFallable;
 import mrunknown404.slabgen.block.SlabGrass;
 import mrunknown404.slabgen.block.SlabMycelium;
+import mrunknown404.slabgen.block.SlabPath;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -29,7 +30,9 @@ public class SGBlocks {
 			() -> new SlabBlock(Properties.of(Material.DIRT).sound(SoundType.GRAVEL).strength(0.5f, 0.5f)));
 	public static final RegistryObject<SlabBlock> PODZOL_SLAB = block("podzol_slab",
 			() -> new SlabBlock(Properties.of(Material.DIRT).sound(SoundType.GRAVEL).strength(0.5f, 0.5f)));
+	public static final RegistryObject<Block> PATH_SLAB = block("path_slab", () -> new SlabPath());
 	public static final RegistryObject<Block> SAND_SLAB = block("sand_slab", () -> new SlabFallable(SoundType.SAND, 0.5f, 0.5f, 14406560));
+	public static final RegistryObject<Block> RED_SAND_SLAB = block("red_sand_slab", () -> new SlabFallable(SoundType.SAND, 0.5f, 0.5f, 11098145));
 	public static final RegistryObject<Block> GRAVEL_SLAB = block("gravel_slab", () -> new SlabFallable(SoundType.GRAVEL, 0.6f, 0.6f, -8356741));
 	
 	static <T extends Block> RegistryObject<T> block(String name, Supplier<T> o) {

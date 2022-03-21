@@ -28,6 +28,7 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 	
 	static {
 		SIDE_BLOCKS.add(Blocks.SANDSTONE);
+		SIDE_BLOCKS.add(Blocks.RED_SANDSTONE);
 		add(Blocks.GRASS_BLOCK, Blocks.DIRT, SGBlocks.GRASS_SLAB.get());
 		add(Blocks.MYCELIUM, Blocks.DIRT, SGBlocks.MYCELIUM_SLAB.get());
 		add(Blocks.COARSE_DIRT, null, SGBlocks.COARSE_DIRT_SLAB.get());
@@ -37,8 +38,9 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 		add(Blocks.DIORITE, null, Blocks.DIORITE_SLAB);
 		add(Blocks.GRANITE, null, Blocks.GRANITE_SLAB);
 		add(Blocks.SAND, null, SGBlocks.SAND_SLAB.get());
+		add(Blocks.RED_SAND, null, SGBlocks.RED_SAND_SLAB.get());
 		add(Blocks.GRAVEL, null, SGBlocks.GRAVEL_SLAB.get());
-		add(Blocks.PODZOL, null, SGBlocks.PODZOL_SLAB.get());
+		add(Blocks.PODZOL, Blocks.DIRT, SGBlocks.PODZOL_SLAB.get());
 	}
 	
 	public FeatureGroundSlabs() {

@@ -6,8 +6,15 @@ import mrunknown404.slabgen.registries.SGBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SlabBlock;
@@ -17,12 +24,45 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.event.ForgeEventFactory;
 
 public class SlabMycelium extends SlabBlock {
 	public SlabMycelium() {
 		super(Properties.of(Material.GRASS).sound(SoundType.GRASS).strength(0.6f, 0.6f).randomTicks());
+	}
+	
+	@Override
+	public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult ray) {
+		ItemStack itemstack = player.getItemInHand(hand);
+		
+		if (ray.getDirection() == Direction.DOWN || !itemstack.isCorrectToolForDrops(state)) { // Weird fix. Forge removed 'ToolType' and I couldn't find a better way
+			return InteractionResult.PASS;
+		}
+		
+		BlockState eventState = ForgeEventFactory.onToolUse(state, world, pos, player, itemstack, ToolActions.SHOVEL_FLATTEN);
+		BlockState finalState = eventState != state ? eventState : SGBlocks.PATH_SLAB.get().defaultBlockState().setValue(TYPE, state.getValue(TYPE));
+		
+		if (finalState != null) {
+			if (state.getValue(TYPE) == SlabType.BOTTOM ||
+					(state.getValue(TYPE) == SlabType.DOUBLE || state.getValue(TYPE) == SlabType.TOP) && world.isEmptyBlock(pos.above())) {
+				world.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1.0F, 1.0F);
+				
+				if (!world.isClientSide) {
+					world.setBlock(pos, finalState, 11);
+					if (player != null) {
+						player.getItemInHand(hand).hurtAndBreak(1, player, (pl) -> {
+							pl.broadcastBreakEvent(hand);
+						});
+					}
+				}
+			}
+		}
+		
+		return InteractionResult.sidedSuccess(world.isClientSide);
 	}
 	
 	private static boolean canBeGrass(BlockState state, LevelReader world, BlockPos pos) {

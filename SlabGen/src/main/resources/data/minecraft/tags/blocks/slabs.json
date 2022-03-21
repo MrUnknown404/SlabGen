@@ -5,9 +5,9 @@
 		"slabgen:grass_slab",
 		"slabgen:mycelium_slab",
 		"slabgen:coarse_dirt_slab",
+		"slabgen:podzol_slab",
 		"slabgen:sand_slab",
 		"slabgen:gravel_slab",
-		"slabgen:podzol_slab",
 		"slabgen:path_slab",
 		"slabgen:red_sand_slab"
 	]
