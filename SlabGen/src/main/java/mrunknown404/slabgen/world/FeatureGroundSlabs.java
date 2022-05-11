@@ -27,8 +27,8 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 	private static final Set<Block> SIDE_BLOCKS = new HashSet<Block>();
 	
 	static {
-		SIDE_BLOCKS.add(Blocks.SANDSTONE);
-		SIDE_BLOCKS.add(Blocks.RED_SANDSTONE);
+		addSideBlock(Blocks.SANDSTONE);
+		addSideBlock(Blocks.RED_SANDSTONE);
 		add(Blocks.GRASS_BLOCK, Blocks.DIRT, SGBlocks.GRASS_SLAB.get());
 		add(Blocks.MYCELIUM, Blocks.DIRT, SGBlocks.MYCELIUM_SLAB.get());
 		add(Blocks.COARSE_DIRT, null, SGBlocks.COARSE_DIRT_SLAB.get());
@@ -103,9 +103,13 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 		return true;
 	}
 	
-	private static void add(Block originBlock, Block replaceBlock, Block slabBlock) {
+	public static void add(Block originBlock, Block replaceBlock, Block slabBlock) {
 		SPAWN_MAP.put(originBlock, new SlabSpawnInfo(replaceBlock, slabBlock));
-		SIDE_BLOCKS.add(originBlock);
+		addSideBlock(originBlock);
+	}
+	
+	public static void addSideBlock(Block block) {
+		SIDE_BLOCKS.add(block);
 	}
 	
 	private static boolean isSide(Block b) {
