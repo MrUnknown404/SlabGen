@@ -1,2 +1,2 @@
 # Slab-Gen
-Adds Dirt/Grass slabs that also generate in the world!
+Adds old and new slabs to World Gen
