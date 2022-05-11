@@ -41,6 +41,7 @@ public class FeatureGroundSlabs extends Feature<NoneFeatureConfiguration> {
 		add(Blocks.RED_SAND, null, SGBlocks.RED_SAND_SLAB.get());
 		add(Blocks.GRAVEL, null, SGBlocks.GRAVEL_SLAB.get());
 		add(Blocks.PODZOL, Blocks.DIRT, SGBlocks.PODZOL_SLAB.get());
+		add(Blocks.DIRT_PATH, Blocks.DIRT, SGBlocks.PATH_SLAB.get());
 	}
 	
 	public FeatureGroundSlabs() {
