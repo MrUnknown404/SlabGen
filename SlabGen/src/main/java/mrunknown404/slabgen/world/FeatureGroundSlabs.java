@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.SlabBlock;
+import net.minecraft.block.SnowBlock;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ISeedReader;
@@ -26,9 +27,14 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 	private static final Map<Block, SlabSpawnInfo> SPAWN_MAP = new HashMap<Block, SlabSpawnInfo>();
 	private static final Set<Block> SIDE_BLOCKS = new HashSet<Block>();
 	
+	private static final BlockState SNOW_LAYER;
+	
 	static {
+		SNOW_LAYER = Blocks.SNOW.defaultBlockState().setValue(SnowBlock.LAYERS, 5);
+		
 		addSideBlock(Blocks.SANDSTONE);
 		addSideBlock(Blocks.RED_SANDSTONE);
+		addSideBlock(Blocks.PACKED_ICE);
 		add(Blocks.GRASS_BLOCK, Blocks.DIRT, SGRegistry.GRASS_SLAB.get());
 		add(Blocks.MYCELIUM, Blocks.DIRT, SGRegistry.MYCELIUM_SLAB.get());
 		add(Blocks.COARSE_DIRT, null, SGRegistry.COARSE_DIRT_SLAB.get());
@@ -42,6 +48,7 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 		add(Blocks.GRAVEL, null, SGRegistry.GRAVEL_SLAB.get());
 		add(Blocks.PODZOL, Blocks.DIRT, SGRegistry.PODZOL_SLAB.get());
 		add(Blocks.GRASS_PATH, Blocks.DIRT, SGRegistry.PATH_SLAB.get());
+		add(Blocks.SNOW_BLOCK, null, SNOW_LAYER);
 	}
 	
 	public FeatureGroundSlabs() {
@@ -57,22 +64,29 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 	public boolean place(ISeedReader seed, ChunkGenerator gen, Random r, BlockPos pos, NoFeatureConfig config) {
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
-				int yy = seed.getHeightmapPos(Heightmap.Type.WORLD_SURFACE, new BlockPos(pos.getX() + x, 0, pos.getZ() + z)).getY();
+				int yy = seed.getHeight(Heightmap.Type.WORLD_SURFACE, pos.getX() + x, pos.getZ() + z);
 				
 				for (int y = gen.getSeaLevel() - 1; y < yy; y++) {
 					BlockPos originPos = new BlockPos(pos.getX() + x, y, pos.getZ() + z), abovePos = originPos.above();
-					SlabSpawnInfo info = SPAWN_MAP.getOrDefault(seed.getBlockState(originPos).getBlock(), null);
+					Block block = seed.getBlockState(originPos).getBlock();
+					SlabSpawnInfo info = SPAWN_MAP.get(block);
 					BlockState aboveState = seed.getBlockState(abovePos);
 					
 					if (info != null && aboveState.getBlock() != Blocks.CAVE_AIR && !aboveState.getMaterial().isLiquid() && aboveState.getMaterial().isReplaceable()) {
 						float count = 0;
+						boolean isSnowy = false;
 						
 						for (Direction dir : Direction.values()) {
 							if (dir == Direction.UP || dir == Direction.DOWN) {
 								continue;
 							}
 							
-							Block relAboveBlock = seed.getBlockState(abovePos.relative(dir)).getBlock();
+							BlockState relAboveState = seed.getBlockState(abovePos.relative(dir));
+							Block relAboveBlock = relAboveState.getBlock();
+							if (relAboveBlock == Blocks.SNOW) {
+								isSnowy = true;
+							}
+							
 							if (isSide(relAboveBlock)) {
 								count++;
 							} else if (relAboveBlock instanceof SlabBlock) {
@@ -87,9 +101,10 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 						
 						if (count > 1) {
 							if (info.shouldReplace()) {
-								setBlock(seed, originPos, info.replaceBlock.defaultBlockState());
+								setBlock(seed, originPos, info.replaceBlock);
 							}
-							setBlock(seed, abovePos, info.slabBlock.defaultBlockState());
+							
+							setBlock(seed, abovePos, isSnowy ? SNOW_LAYER : info.slabBlock);
 						}
 					}
 				}
@@ -99,9 +114,13 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 		return true;
 	}
 	
-	public static void add(Block originBlock, Block replaceBlock, Block slabBlock) {
+	public static void add(Block originBlock, BlockState replaceBlock, BlockState slabBlock) {
 		SPAWN_MAP.put(originBlock, new SlabSpawnInfo(replaceBlock, slabBlock));
 		addSideBlock(originBlock);
+	}
+	
+	public static void add(Block originBlock, Block replaceBlock, Block slabBlock) {
+		add(originBlock, replaceBlock == null ? null : replaceBlock.defaultBlockState(), slabBlock.defaultBlockState());
 	}
 	
 	public static void addSideBlock(Block block) {
@@ -113,9 +132,9 @@ public class FeatureGroundSlabs extends Feature<NoFeatureConfig> {
 	}
 	
 	private static class SlabSpawnInfo {
-		private final Block slabBlock, replaceBlock;
+		private final BlockState slabBlock, replaceBlock;
 		
-		private SlabSpawnInfo(@Nullable Block replaceBlock, Block slabBlock) {
+		private SlabSpawnInfo(@Nullable BlockState replaceBlock, BlockState slabBlock) {
 			this.slabBlock = slabBlock;
 			this.replaceBlock = replaceBlock;
 		}
