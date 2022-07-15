@@ -14,14 +14,12 @@ public class ClientProxy {
 		ItemBlockRenderTypes.setRenderLayer(SGBlocks.GRASS_SLAB.get(), RenderType.cutoutMipped());
 		
 		Minecraft mc = Minecraft.getInstance();
-		mc.getBlockColors().register((state, reader, pos, tintIndex) -> {
-			// This is weird. Vanilla doesn't do this but this messes with particles otherwise??
-			// I'm probably just missing something
-			return reader instanceof ClientLevel ? -1 : mc.getBlockColors().getColor(Blocks.GRASS_BLOCK.defaultBlockState(), reader, pos, tintIndex);
-		}, SGBlocks.GRASS_SLAB.get());
+
+		// This is weird. Vanilla doesn't do this but this messes with particles otherwise??
+		// I'm probably just missing something
+		mc.getBlockColors().register((state, reader, pos, tintIndex) -> reader instanceof ClientLevel ? -1 :
+				mc.getBlockColors().getColor(Blocks.GRASS_BLOCK.defaultBlockState(), reader, pos, tintIndex), SGBlocks.GRASS_SLAB.get());
 		
-		mc.getItemColors().register((itemstack, tintIndex) -> {
-			return GrassColor.get(0.5, 1);
-		}, SGBlocks.GRASS_SLAB.get());
+		mc.getItemColors().register((itemstack, tintIndex) -> GrassColor.get(0.5, 1), SGBlocks.GRASS_SLAB.get());
 	}
 }

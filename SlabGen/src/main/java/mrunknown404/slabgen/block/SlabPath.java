@@ -68,16 +68,12 @@ public class SlabPath extends SlabBlock {
 	
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter reader, BlockPos pos, CollisionContext ctx) {
-		switch (state.getValue(TYPE)) {
-			case TOP:
-				return TOP;
-			case BOTTOM:
-				return BOTTOM;
-			case DOUBLE:
-				return FULL;
-			default:
-				return Shapes.block();
-		}
+		return switch (state.getValue(TYPE)) {
+			case TOP -> SlabPath.TOP;
+			case BOTTOM -> SlabPath.BOTTOM;
+			case DOUBLE -> SlabPath.FULL;
+			default -> Shapes.block();
+		};
 	}
 	
 	@Override

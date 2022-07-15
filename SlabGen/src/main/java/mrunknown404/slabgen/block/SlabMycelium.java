@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -42,21 +43,18 @@ public class SlabMycelium extends SlabBlock {
 		if (ray.getDirection() == Direction.DOWN || !itemstack.isCorrectToolForDrops(state)) { // Weird fix. Forge removed 'ToolType' and I couldn't find a better way
 			return InteractionResult.PASS;
 		}
-		
-		BlockState eventState = ForgeEventFactory.onToolUse(state, world, pos, player, itemstack, ToolActions.SHOVEL_FLATTEN);
+
+		BlockState eventState = ForgeEventFactory.onToolUse(state, new UseOnContext(player, hand, ray), ToolActions.SHOVEL_FLATTEN, true);
 		BlockState finalState = eventState != state ? eventState : SGBlocks.PATH_SLAB.get().defaultBlockState().setValue(TYPE, state.getValue(TYPE));
 		
 		if (finalState != null) {
-			if (state.getValue(TYPE) == SlabType.BOTTOM ||
-					(state.getValue(TYPE) == SlabType.DOUBLE || state.getValue(TYPE) == SlabType.TOP) && world.isEmptyBlock(pos.above())) {
-				world.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1.0F, 1.0F);
+			if (state.getValue(TYPE) == SlabType.BOTTOM || (state.getValue(TYPE) == SlabType.DOUBLE || state.getValue(TYPE) == SlabType.TOP) && world.isEmptyBlock(pos.above())) {
+				world.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1f, 1f);
 				
 				if (!world.isClientSide) {
 					world.setBlock(pos, finalState, 11);
 					if (player != null) {
-						player.getItemInHand(hand).hurtAndBreak(1, player, (pl) -> {
-							pl.broadcastBreakEvent(hand);
-						});
+						player.getItemInHand(hand).hurtAndBreak(1, player, pl -> pl.broadcastBreakEvent(hand));
 					}
 				}
 			}
@@ -117,8 +115,8 @@ public class SlabMycelium extends SlabBlock {
 					BlockState state1 = world.getBlockState(blockpos);
 					
 					if (state1.is(Blocks.DIRT) && canPropagate(state1, world, blockpos)) {
-						world.setBlockAndUpdate(blockpos, Blocks.MYCELIUM.defaultBlockState().setValue(SnowyDirtBlock.SNOWY,
-								Boolean.valueOf(world.getBlockState(blockpos.above()).is(Blocks.SNOW))));
+						world.setBlockAndUpdate(blockpos,
+								Blocks.MYCELIUM.defaultBlockState().setValue(SnowyDirtBlock.SNOWY, Boolean.valueOf(world.getBlockState(blockpos.above()).is(Blocks.SNOW))));
 					} else if (state1.is(SGBlocks.DIRT_SLAB.get()) && canPropagate(state1, world, blockpos)) {
 						world.setBlockAndUpdate(blockpos, defaultBlockState().setValue(SlabBlock.TYPE, state1.getValue(SlabBlock.TYPE)));
 					}

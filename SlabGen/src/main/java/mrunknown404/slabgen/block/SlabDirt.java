@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -42,20 +43,17 @@ public class SlabDirt extends SlabBlock {
 			return InteractionResult.PASS;
 		}
 		
-		BlockState eventState = ForgeEventFactory.onToolUse(state, world, pos, player, itemstack, ToolActions.SHOVEL_FLATTEN);
+		BlockState eventState = ForgeEventFactory.onToolUse(state, new UseOnContext(player, hand, ray), ToolActions.SHOVEL_FLATTEN, true);
 		BlockState finalState = eventState != state ? eventState : SGBlocks.PATH_SLAB.get().defaultBlockState().setValue(TYPE, state.getValue(TYPE));
 		
 		if (finalState != null) {
-			if (state.getValue(TYPE) == SlabType.BOTTOM ||
-					(state.getValue(TYPE) == SlabType.DOUBLE || state.getValue(TYPE) == SlabType.TOP) && world.isEmptyBlock(pos.above())) {
-				world.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1.0F, 1.0F);
+			if (state.getValue(TYPE) == SlabType.BOTTOM || (state.getValue(TYPE) == SlabType.DOUBLE || state.getValue(TYPE) == SlabType.TOP) && world.isEmptyBlock(pos.above())) {
+				world.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1f, 1f);
 				
 				if (!world.isClientSide) {
 					world.setBlock(pos, finalState, 11);
 					if (player != null) {
-						player.getItemInHand(hand).hurtAndBreak(1, player, (pl) -> {
-							pl.broadcastBreakEvent(hand);
-						});
+						player.getItemInHand(hand).hurtAndBreak(1, player, pl -> pl.broadcastBreakEvent(hand));
 					}
 				}
 			}
@@ -114,11 +112,9 @@ public class SlabDirt extends SlabBlock {
 				for (int i = 0; i < 4; i++) {
 					BlockPos blockpos = pos.offset(r.nextInt(3) - 1, r.nextInt(5) - 3, r.nextInt(3) - 1);
 					if (world.getBlockState(blockpos).is(Blocks.GRASS_BLOCK) && canPropagate(defaultBlockState(), world, pos)) {
-						world.setBlockAndUpdate(pos,
-								SGBlocks.GRASS_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
+						world.setBlockAndUpdate(pos, SGBlocks.GRASS_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
 					} else if (world.getBlockState(blockpos).is(Blocks.MYCELIUM) && canPropagate(defaultBlockState(), world, pos)) {
-						world.setBlockAndUpdate(pos,
-								SGBlocks.MYCELIUM_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
+						world.setBlockAndUpdate(pos, SGBlocks.MYCELIUM_SLAB.get().defaultBlockState().setValue(SlabBlock.TYPE, world.getBlockState(pos).getValue(SlabBlock.TYPE)));
 					}
 				}
 			}

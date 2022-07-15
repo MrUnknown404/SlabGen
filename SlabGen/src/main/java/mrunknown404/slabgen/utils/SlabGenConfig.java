@@ -15,8 +15,8 @@ public class SlabGenConfig {
 		
 		public Common(ForgeConfigSpec.Builder builder) {
 			builder.push("slabgen");
-			this.biomeWhiteList = builder.comment("Wheather or not the biome list is whitelist or blacklist. false for blacklist, true for whitelist")
-					.define("biome whitelist", false);
+			this.biomeWhiteList = builder.comment("Wheather or not the biome list is whitelist or blacklist. false for blacklist, true for whitelist").define("biome whitelist",
+					false);
 			this.biomeList = builder.comment("Biomes that should include/exclude slab generation. Should be <modid:biomeid>. Example: minecraft:forest").define("biome list",
 					new ArrayList<String>());
 			builder.pop();

@@ -36,7 +36,7 @@ public class SlabFallable extends FallingBlock implements SimpleWaterloggedBlock
 	public SlabFallable(SoundType soundType, float hardness, float blast, int dustColor) {
 		super(Properties.of(Material.SAND).sound(soundType).strength(hardness, blast).randomTicks());
 		this.dustColor = dustColor;
-		registerDefaultState(defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED, Boolean.valueOf(false)));
+		registerDefaultState(defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED, false));
 	}
 	
 	@Override
@@ -72,15 +72,11 @@ public class SlabFallable extends FallingBlock implements SimpleWaterloggedBlock
 	
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter reader, BlockPos pos, CollisionContext ctx) {
-		SlabType slabtype = state.getValue(SlabBlock.TYPE);
-		switch (slabtype) {
-			case DOUBLE:
-				return Shapes.block();
-			case TOP:
-				return TOP_AABB;
-			default:
-				return BOTTOM_AABB;
-		}
+		return switch (state.getValue(SlabBlock.TYPE)) {
+			case DOUBLE -> Shapes.block();
+			case TOP -> TOP_AABB;
+			default -> BOTTOM_AABB;
+		};
 	}
 	
 	@Override
@@ -88,11 +84,10 @@ public class SlabFallable extends FallingBlock implements SimpleWaterloggedBlock
 		BlockPos blockpos = ctx.getClickedPos();
 		BlockState blockstate = ctx.getLevel().getBlockState(blockpos);
 		if (blockstate.is(this)) {
-			return blockstate.setValue(SlabBlock.TYPE, SlabType.DOUBLE).setValue(SlabBlock.WATERLOGGED, Boolean.valueOf(false));
+			return blockstate.setValue(SlabBlock.TYPE, SlabType.DOUBLE).setValue(SlabBlock.WATERLOGGED, false);
 		}
 		
-		return defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED,
-				Boolean.valueOf(ctx.getLevel().getFluidState(blockpos).getType() == Fluids.WATER));
+		return defaultBlockState().setValue(SlabBlock.TYPE, SlabType.BOTTOM).setValue(SlabBlock.WATERLOGGED, ctx.getLevel().getFluidState(blockpos).getType() == Fluids.WATER);
 	}
 	
 	@Override
